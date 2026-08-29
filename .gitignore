@@ -18,3 +18,4 @@ out/
 .env.*.local
 .vercel/
 Thumbs.db
+.vercel
