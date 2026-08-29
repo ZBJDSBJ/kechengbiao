@@ -909,7 +909,6 @@ function toggleEdit() {
 function enableInlineEdit() {
   document.querySelectorAll("td.subject").forEach(td => {
     td.classList.add("editing");
-    td.ondblclick = function() { editCell(td); };
   });
 }
 
@@ -927,8 +926,6 @@ function editCell(td) {
     sub.name = nameInput.value || oldName;
     sub.teacher = teacherInput.value;
     td.innerHTML = `<div class="subject-name">${sub.name}</div>${sub.teacher ? `<div class="subject-teacher">（${sub.teacher}）</div>` : ""}`;
-    td.classList.add("editing");
-    td.ondblclick = function() { editCell(td); };
   }
   nameInput.onblur = save;
   teacherInput.onblur = save;
@@ -1036,7 +1033,7 @@ function renderSchedule() {
       td.dataset.row = rIdx;
       td.dataset.col = cIdx;
       td.innerHTML = `<div class="subject-name">${sub.name}</div>${sub.teacher ? `<div class="subject-teacher">（${sub.teacher}）</div>` : ""}`;
-      td.onclick = () => showDetail(row, sub, cIdx);
+      td.onclick = () => { if (editMode) editCell(td); else showDetail(row, sub, cIdx); };
       tr.appendChild(td);
     });
     body.appendChild(tr);
