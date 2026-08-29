@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课程表 - 锦晖小学一年级14班</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #4A90E2;
+    --primary-dark: #357ABD;
+    --accent: #F5A623;
+    --bg: #F0F4F8;
+    --card-bg: #FFFFFF;
+    --text: #2C3E50;
+    --text-light: #7F8C8D;
+    --border: #E1E8ED;
+    --morning: #E8F4FD;
+    --noon: #FFF4E6;
+    --afternoon: #E8F8F0;
+    --delay: #F0E8FD;
+    --current: #F5A623;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.5;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 24px 32px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(74, 144, 226, 0.3);
+  }
+  .header h1 { font-size: 28px; margin-bottom: 8px; letter-spacing: 2px; }
+  .header .info { font-size: 15px; opacity: 0.95; display: flex; flex-wrap: wrap; gap: 16px; }
+  .header .info span { display: inline-flex; align-items: center; gap: 6px; }
+  .header { margin-bottom: 20px; }
+  .calendar-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .calendar-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .calendar-controls { display: flex; align-items: center; gap: 8px; }
+  .calendar-nav { display: flex; gap: 6px; }
+  .calendar-nav button {
+    background: var(--bg);
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--primary);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .calendar-nav button:hover { background: var(--primary); color: white; }
+  .btn-toggle {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn-toggle:hover { background: var(--primary-dark); }
+  .calendar-week-view {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  .week-cell {
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-height: 92px;
+  }
+  .week-cell:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .week-cell .wk-dow { font-size: 12px; color: var(--text-light); font-weight: 600; }
+  .week-cell .wk-day { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .week-cell .wk-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    line-height: 1.4;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .week-cell.today { border-color: var(--primary); background: #E8F4FD; }
+  .week-cell.today .wk-day { color: var(--primary); }
+  .week-cell.holiday { background: #FDECEA; }
+  .week-cell.holiday .wk-day { color: #C0392B; }
+  .week-cell.holiday .wk-tag { background: #C0392B; color: white; }
+  .week-cell.workday { background: #FEF9E7; }
+  .week-cell.workday .wk-day { color: #856404; }
+  .week-cell.workday .wk-tag { background: #856404; color: white; }
+  .week-cell.schoolevent { background: #E8F8F0; }
+  .week-cell.schoolevent .wk-day { color: #1E8449; }
+  .week-cell.schoolevent .wk-tag { background: #27AE60; color: white; }
+  .week-cell.festival { background: #EBF5FB; }
+  .week-cell.festival .wk-day { color: #2471A3; }
+  .week-cell.festival .wk-tag { background: #3498DB; color: white; }
+  .week-cell.weekend:not(.holiday):not(.workday):not(.schoolevent):not(.festival) .wk-dow { color: #E74C3C; }
+  .week-cell.weekend:not(.holiday):not(.workday):not(.schoolevent):not(.festival) .wk-day { color: #E74C3C; }
+  .week-cell.other-month { opacity: 0.4; }
+  .calendar-month-view { display: none; }
+  .calendar-month-view.active { display: block; }
+  .calendar-week-view.hidden { display: none; }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .calendar-week {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-light);
+    padding: 4px 0;
+  }
+  .calendar-week.weekend { color: #E74C3C; }
+  .calendar-day {
+    text-align: center;
+    padding: 6px 2px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s;
+    min-height: 38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .calendar-day:hover { background: var(--bg); }
+  .calendar-day.empty { cursor: default; }
+  .calendar-day.empty:hover { background: transparent; }
+  .calendar-day .day-num { font-weight: 500; }
+  .calendar-day .day-tag {
+    font-size: 9px;
+    margin-top: 1px;
+    line-height: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .calendar-day.today { background: var(--primary); color: white; }
+  .calendar-day.today .day-num { font-weight: 700; }
+  .calendar-day.holiday { background: #FDECEA; color: #C0392B; }
+  .calendar-day.holiday .day-tag { color: #C0392B; font-weight: 600; }
+  .calendar-day.workday { background: #FEF9E7; color: #856404; }
+  .calendar-day.workday .day-tag { color: #856404; }
+  .calendar-day.schoolevent { background: #E8F8F0; color: #1E8449; }
+  .calendar-day.schoolevent .day-tag { color: #1E8449; font-weight: 600; }
+  .calendar-day.festival { background: #EBF5FB; color: #2471A3; }
+  .calendar-day.festival .day-tag { color: #2471A3; font-weight: 600; }
+  .calendar-day.weekend:not(.holiday):not(.workday):not(.schoolevent):not(.festival) { color: #E74C3C; }
+  .calendar-day.today.holiday { background: linear-gradient(135deg, var(--primary), #C0392B); }
+  .calendar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text-light);
+    flex-wrap: wrap;
+  }
+  .calendar-legend .lg { display: inline-flex; align-items: center; gap: 4px; }
+  .calendar-legend .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  @media (max-width: 768px) {
+    .week-cell .wk-day { font-size: 18px; }
+    .week-cell { min-height: 78px; padding: 8px 2px; }
+    .week-cell .wk-tag { font-size: 9px; padding: 1px 4px; }
+  }
+  .holiday-banner {
+    display: none;
+    background: linear-gradient(135deg, #C0392B, #E74C3C);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(192, 57, 43, 0.3);
+    animation: pulse 2s infinite;
+  }
+  .holiday-banner.show { display: block; }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    background: var(--card-bg);
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .toolbar .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .toolbar .actions { display: flex; gap: 8px; }
+  .btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .btn.outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+  .btn.outline:hover { background: var(--primary); color: white; }
+  .schedule-wrapper {
+    background: var(--card-bg);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .schedule { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .schedule th, .schedule td {
+    border: 1px solid var(--border);
+    padding: 10px 6px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .schedule thead th {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-weight: 600;
+    padding: 14px 6px;
+    font-size: 15px;
+    letter-spacing: 1px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .schedule thead th:first-child { background: var(--primary-dark); }
+  .schedule .period-col {
+    background: #FAFCFE;
+    width: 110px;
+    font-weight: 600;
+  }
+  .period-name { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .period-time {
+    font-size: 11px;
+    color: var(--text-light);
+    font-weight: normal;
+    display: block;
+    margin-top: 2px;
+  }
+  .schedule td.subject { transition: all 0.2s; cursor: pointer; }
+  .schedule td.subject:hover { transform: scale(1.05); z-index: 5; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .subject-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .subject-teacher { font-size: 11px; color: var(--text-light); }
+  .row-morning td.subject { background: var(--morning); }
+  .row-noon td.subject { background: var(--noon); }
+  .row-afternoon td.subject { background: var(--afternoon); }
+  .row-delay td.subject { background: var(--delay); }
+  .row-morning .period-col { border-left: 4px solid #4A90E2; }
+  .row-noon .period-col { border-left: 4px solid #F5A623; }
+  .row-afternoon .period-col { border-left: 4px solid #27AE60; }
+  .row-delay .period-col { border-left: 4px solid #9B59B6; }
+  .schedule td.current {
+    background: linear-gradient(135deg, #F5A623, #F57C00) !important;
+    color: white !important;
+    animation: pulse 2s infinite;
+  }
+  .schedule td.current .subject-teacher { color: rgba(255,255,255,0.9) !important; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.6); }
+    50% { box-shadow: 0 0 0 8px rgba(245, 166, 35, 0); }
+  }
+  .schedule td.empty { background: #FAFCFE; color: var(--text-light); }
+  .section-divider td {
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    padding: 4px;
+    font-size: 12px;
+    color: var(--text-light);
+    letter-spacing: 2px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  .stat-card .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+  .stat-card .label { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .modal-content h3 { margin-bottom: 12px; color: var(--primary); }
+  .modal-content p { margin-bottom: 8px; color: var(--text); }
+  .modal-content .close { margin-top: 16px; width: 100%; }
+  @media (max-width: 768px) {
+    body { padding: 10px; }
+    .header { padding: 16px 20px; }
+    .header h1 { font-size: 22px; }
+    .schedule th, .schedule td { padding: 6px 2px; font-size: 11px; }
+    .subject-name { font-size: 12px; }
+    .subject-teacher { font-size: 10px; }
+    .period-time { font-size: 10px; }
+    .schedule .period-col { width: 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 课程表</h1>
+    <div class="info">
+      <span>📅 2026-2027学年第一学期</span>
+      <span>🏫 锦晖小学金融城分校</span>
+      <span>🎓 一年级14班</span>
+      <span>👩‍🏫 班主任：易鑫月</span>
+    </div>
+  </div>
+  <div class="calendar-card">
+    <div class="calendar-header">
+      <div class="calendar-title" id="calTitle">2026年8月</div>
+      <div class="calendar-controls">
+        <div class="calendar-nav">
+          <button onclick="changePrev()" title="上一周/上一月">‹</button>
+          <button onclick="goToday()" title="回到今天">●</button>
+          <button onclick="changeNext()" title="下一周/下一月">›</button>
+        </div>
+        <button class="btn-toggle" id="toggleViewBtn" onclick="toggleView()">展开当月 ▾</button>
+      </div>
+    </div>
+    <div class="calendar-week-view" id="weekView"></div>
+    <div class="calendar-month-view" id="monthView">
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+    <div class="calendar-legend">
+      <span class="lg"><span class="dot" style="background:#FDECEA;border:1px solid #C0392B"></span>假日</span>
+      <span class="lg"><span class="dot" style="background:#FEF9E7;border:1px solid #856404"></span>调休上班</span>
+      <span class="lg"><span class="dot" style="background:#E8F8F0;border:1px solid #27AE60"></span>学校安排</span>
+      <span class="lg"><span class="dot" style="background:#EBF5FB;border:1px solid #3498DB"></span>节日/纪念日</span>
+      <span class="lg"><span class="dot" style="background:var(--primary)"></span>今天</span>
+    </div>
+  </div>
+
+  <div class="holiday-banner" id="holidayBanner"></div>
+  <div class="toolbar">
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:var(--morning)"></span>上午</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--noon)"></span>午休</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--afternoon)"></span>下午</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--delay)"></span>延时服务</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--current)"></span>当前课程</span>
+    </div>
+    <div class="actions">
+      <button class="btn outline" onclick="highlightCurrent(true)">定位当前课</button>
+      <button class="btn" onclick="toggleTime()">显示/隐藏时间</button>
+    </div>
+  </div>
+
+  <div class="schedule-wrapper">
+    <table class="schedule" id="scheduleTable">
+      <thead>
+        <tr>
+          <th>时间 / 节次</th>
+          <th>星期一</th>
+          <th>星期二</th>
+          <th>星期三</th>
+          <th>星期四</th>
+          <th>星期五</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleBody"></tbody>
+    </table>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">5</div><div class="label">每周天数</div></div>
+    <div class="stat-card"><div class="num">10</div><div class="label">每日节数</div></div>
+    <div class="stat-card"><div class="num">50</div><div class="label">每周总课时</div></div>
+    <div class="stat-card"><div class="num" id="currentPeriod">-</div><div class="label">当前节次</div></div>
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle">课程详情</h3>
+    <p id="modalSubject"></p>
+    <p id="modalTeacher"></p>
+    <p id="modalTime"></p>
+    <p id="modalDay"></p>
+    <button class="btn close" onclick="closeModal()">关闭</button>
+  </div>
+</div>
+
+<script>
+const holidays2026 = {
+  "2026-01-01": { name: "元旦", type: "holiday" },
+  "2026-02-17": { name: "除夕", type: "holiday" },
+  "2026-02-18": { name: "春节", type: "holiday" },
+  "2026-02-19": { name: "初二", type: "holiday" },
+  "2026-02-20": { name: "初三", type: "holiday" },
+  "2026-02-21": { name: "初四", type: "holiday" },
+  "2026-02-22": { name: "初五", type: "holiday" },
+  "2026-02-23": { name: "初六", type: "holiday" },
+  "2026-02-14": { name: "调休", type: "workday" },
+  "2026-02-15": { name: "调休", type: "workday" },
+  "2026-04-04": { name: "清明", type: "holiday" },
+  "2026-04-05": { name: "清明", type: "holiday" },
+  "2026-04-06": { name: "清明", type: "holiday" },
+  "2026-04-26": { name: "调休", type: "workday" },
+  "2026-05-01": { name: "劳动节", type: "holiday" },
+  "2026-05-02": { name: "劳动节", type: "holiday" },
+  "2026-05-03": { name: "劳动节", type: "holiday" },
+  "2026-05-04": { name: "劳动节", type: "holiday" },
+  "2026-05-05": { name: "劳动节", type: "holiday" },
+  "2026-06-19": { name: "端午", type: "holiday" },
+  "2026-06-20": { name: "端午", type: "holiday" },
+  "2026-06-21": { name: "端午", type: "holiday" },
+  "2026-09-25": { name: "中秋", type: "holiday" },
+  "2026-09-26": { name: "中秋", type: "holiday" },
+  "2026-09-27": { name: "调休", type: "workday" },
+  "2026-10-01": { name: "国庆", type: "holiday" },
+  "2026-10-02": { name: "国庆", type: "holiday" },
+  "2026-10-03": { name: "国庆", type: "holiday" },
+  "2026-10-04": { name: "国庆", type: "holiday" },
+  "2026-10-05": { name: "国庆", type: "holiday" },
+  "2026-10-06": { name: "国庆", type: "holiday" },
+  "2026-10-07": { name: "国庆", type: "holiday" },
+  "2026-10-08": { name: "国庆", type: "holiday" },
+  "2026-10-10": { name: "调休", type: "workday" }
+};
+
+const schoolEvents2026 = {
+  "2026-08-29": { name: "报名", type: "schoolevent" },
+  "2026-08-30": { name: "适应学习", type: "schoolevent" },
+  "2026-09-01": { name: "开学", type: "schoolevent" }
+};
+
+const festivals2026 = {
+  "2026-01-01": { name: "元旦", type: "festival" },
+  "2026-02-14": { name: "情人节", type: "festival" },
+  "2026-03-05": { name: "学雷锋日", type: "festival" },
+  "2026-03-08": { name: "妇女节", type: "festival" },
+  "2026-03-12": { name: "植树节", type: "festival" },
+  "2026-03-15": { name: "消费者权益日", type: "festival" },
+  "2026-04-01": { name: "愚人节", type: "festival" },
+  "2026-04-23": { name: "读书日", type: "festival" },
+  "2026-05-04": { name: "青年节", type: "festival" },
+  "2026-05-10": { name: "母亲节", type: "festival" },
+  "2026-05-12": { name: "护士节", type: "festival" },
+  "2026-06-01": { name: "儿童节", type: "festival" },
+  "2026-06-21": { name: "父亲节", type: "festival" },
+  "2026-07-01": { name: "建党节", type: "festival" },
+  "2026-08-01": { name: "建军节", type: "festival" },
+  "2026-09-03": { name: "抗战胜利日", type: "festival" },
+  "2026-09-10": { name: "教师节", type: "festival" },
+  "2026-10-19": { name: "重阳节", type: "festival" },
+  "2026-10-31": { name: "万圣节", type: "festival" },
+  "2026-11-26": { name: "感恩节", type: "festival" },
+  "2026-12-24": { name: "平安夜", type: "festival" },
+  "2026-12-25": { name: "圣诞节", type: "festival" }
+};
+
+let calDate = new Date();
+let weekRef = new Date();
+const today = new Date();
+let viewMode = "week";
+
+function pad(n) { return n < 10 ? "0" + n : "" + n; }
+function dateKey(y, m, d) { return `${y}-${pad(m+1)}-${pad(d)}`; }
+function sameDay(a, b) { return a.toDateString() === b.toDateString(); }
+function getWeekStart(d) {
+  const s = new Date(d);
+  s.setHours(0,0,0,0);
+  s.setDate(s.getDate() - s.getDay());
+  return s;
+}
+function getWeekNumber(d) {
+  const start = new Date(d.getFullYear(), 0, 1);
+  const diff = (d - start) / 86400000 + start.getDay() + 1;
+  return Math.ceil(diff / 7);
+}
+
+function getDayInfo(date) {
+  const y = date.getFullYear();
+  const m = date.getMonth();
+  const d = date.getDate();
+  const dow = date.getDay();
+  const key = dateKey(y, m, d);
+  const hol = holidays2026[key];
+  const evt = schoolEvents2026[key];
+  const fest = festivals2026[key];
+  const mark = evt || hol || fest;
+  return { y, m, d, dow, key, hol, evt, fest, mark, isToday: sameDay(date, today) };
+}
+
+function renderWeekView() {
+  const start = getWeekStart(weekRef);
+  const container = document.getElementById("weekView");
+  container.innerHTML = "";
+  const dows = ["周日","周一","周二","周三","周四","周五","周六"];
+  const monthNames = start.getMonth() === (new Date(start.getTime()+6*86400000)).getMonth()
+    ? `${start.getFullYear()}年${start.getMonth()+1}月`
+    : `${start.getFullYear()}年${start.getMonth()+1}月–${(new Date(start.getTime()+6*86400000)).getMonth()+1}月`;
+  document.getElementById("calTitle").textContent = `${monthNames} · 第${getWeekNumber(start)}周`;
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(start.getTime() + i * 86400000);
+    const info = getDayInfo(date);
+    const cell = document.createElement("div");
+    cell.className = "week-cell";
+    if (info.dow === 0 || info.dow === 6) cell.classList.add("weekend");
+    if (info.mark) cell.classList.add(info.mark.type);
+    if (info.isToday) cell.classList.add("today");
+    let html = `<div class="wk-dow">${dows[i]}</div><div class="wk-day">${info.d}</div>`;
+    if (info.mark) html += `<div class="wk-tag">${info.mark.name}</div>`;
+    cell.innerHTML = html;
+    cell.title = `${info.y}年${info.m+1}月${info.d}日 ${info.mark ? info.mark.name : ""}`;
+    container.appendChild(cell);
+  }
+}
+
+function renderMonthView() {
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  document.getElementById("calTitle").textContent = `${year}年${month+1}月`;
+  const grid = document.getElementById("calendarGrid");
+  grid.innerHTML = "";
+  const weeks = ["日","一","二","三","四","五","六"];
+  weeks.forEach((w, i) => {
+    const el = document.createElement("div");
+    el.className = "calendar-week" + (i === 0 || i === 6 ? " weekend" : "");
+    el.textContent = w;
+    grid.appendChild(el);
+  });
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  for (let i = 0; i < firstDay; i++) {
+    const el = document.createElement("div");
+    el.className = "calendar-day empty";
+    grid.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement("div");
+    el.className = "calendar-day";
+    const date = new Date(year, month, d);
+    const info = getDayInfo(date);
+    if (info.dow === 0 || info.dow === 6) el.classList.add("weekend");
+    if (info.mark) el.classList.add(info.mark.type);
+    if (info.isToday) el.classList.add("today");
+    let html = `<span class="day-num">${d}</span>`;
+    if (info.mark) html += `<span class="day-tag">${info.mark.name}</span>`;
+    el.innerHTML = html;
+    el.title = info.mark ? `${year}年${month+1}月${d}日 ${info.mark.name}` : `${year}年${month+1}月${d}日`;
+    grid.appendChild(el);
+  }
+}
+
+function renderCalendar() {
+  if (viewMode === "week") {
+    renderWeekView();
+  } else {
+    renderMonthView();
+  }
+}
+
+function toggleView() {
+  viewMode = viewMode === "week" ? "month" : "week";
+  const btn = document.getElementById("toggleViewBtn");
+  const wv = document.getElementById("weekView");
+  const mv = document.getElementById("monthView");
+  if (viewMode === "month") {
+    calDate = new Date(weekRef);
+    btn.textContent = "收起为周 ▴";
+    wv.classList.add("hidden");
+    mv.classList.add("active");
+  } else {
+    btn.textContent = "展开当月 ▾";
+    wv.classList.remove("hidden");
+    mv.classList.remove("active");
+  }
+  renderCalendar();
+}
+
+function changePrev() {
+  if (viewMode === "week") {
+    weekRef.setDate(weekRef.getDate() - 7);
+  } else {
+    calDate.setMonth(calDate.getMonth() - 1);
+  }
+  renderCalendar();
+}
+
+function changeNext() {
+  if (viewMode === "week") {
+    weekRef.setDate(weekRef.getDate() + 7);
+  } else {
+    calDate.setMonth(calDate.getMonth() + 1);
+  }
+  renderCalendar();
+}
+
+function goToday() {
+  weekRef = new Date();
+  calDate = new Date();
+  renderCalendar();
+}
+
+renderCalendar();
+
+const scheduleData = [
+  { section: "morning", period: "第1节", time: "8:30—9:00", subjects: [
+    { name: "语文", teacher: "易鑫月" }, { name: "数学", teacher: "陈丽丽" }, { name: "语文", teacher: "易鑫月" }, { name: "数学", teacher: "陈丽丽" }, { name: "语文", teacher: "易鑫月" }
+  ]},
+  { section: "morning", period: "第2节", time: "9:30—10:00", subjects: [
+    { name: "书法（国学诵读）", teacher: "易鑫月" }, { name: "语文", teacher: "易鑫月" }, { name: "数学", teacher: "陈丽丽" }, { name: "语文", teacher: "易鑫月" }, { name: "语文", teacher: "易鑫月" }
+  ]},
+  { section: "morning", period: "第3节", time: "10:15—10:45", subjects: [
+    { name: "科学", teacher: "张鸽" }, { name: "综合实践", teacher: "郭昀佶" }, { name: "国际理解", teacher: "肖含" }, { name: "绘本阅读", teacher: "易鑫月" }, { name: "体育与健康", teacher: "彭彪" }
+  ]},
+  { section: "morning", period: "第4节", time: "11:00—11:30", subjects: [
+    { name: "数学", teacher: "陈丽丽" }, { name: "体育与健康", teacher: "彭彪" }, { name: "劳动", teacher: "白一辰" }, { name: "生安（心理）", teacher: "杨春花/郭昀佶" }, { name: "数学与生活", teacher: "陈丽丽" }
+  ]},
+  { section: "morning", period: "第5节", time: "11:45—12:15", subjects: [
+    { name: "思维训练", teacher: "陈丽丽" }, { name: "音乐", teacher: "魏洋" }, { name: "体育与健康", teacher: "彭彪" }, { name: "英语", teacher: "肖含" }, { name: "道德与法治", teacher: "张雯熙" }
+  ]},
+  { section: "noon", period: "午休", time: "12:15—13:45", subjects: [
+    { name: "午休", teacher: "" }, { name: "午休", teacher: "" }, { name: "午休", teacher: "" }, { name: "午休", teacher: "" }, { name: "午休", teacher: "" }
+  ]},
+  { section: "afternoon", period: "第6节", time: "14:00—14:30", subjects: [
+    { name: "体育特色", teacher: "谢成超" }, { name: "道德与法治", teacher: "张雯熙" }, { name: "美术", teacher: "潘鑫" }, { name: "音乐", teacher: "魏洋" }, { name: "班队（主题活动）", teacher: "易鑫月" }
+  ]},
+  { section: "afternoon", period: "第7节", time: "14:45—15:15", subjects: [
+    { name: "英语", teacher: "肖含" }, { name: "社团", teacher: "" }, { name: "美术", teacher: "潘鑫" }, { name: "体育与健康", teacher: "彭彪" }, { name: "科学", teacher: "张鸽" }
+  ]},
+  { section: "delay", period: "延时第1节", time: "15:30—16:05", subjects: [
+    { name: "语文作业", teacher: "易鑫月" }, { name: "社团", teacher: "" }, { name: "数学作业", teacher: "陈丽丽" }, { name: "数学作业", teacher: "陈丽丽" }, { name: "综合素养1", teacher: "彭彪" }
+  ]},
+  { section: "delay", period: "延时第2节", time: "16:15—16:50", subjects: [
+    { name: "数学作业", teacher: "陈丽丽" }, { name: "语文作业", teacher: "易鑫月" }, { name: "综合素养3", teacher: "郑艳红" }, { name: "语文作业", teacher: "易鑫月" }, { name: "语文作业", teacher: "易鑫月" }
+  ]},
+  { section: "delay", period: "延时第3节", time: "17:00—17:35", subjects: [
+    { name: "综合素养4", teacher: "魏洋" }, { name: "数学作业", teacher: "陈丽丽" }, { name: "语文作业", teacher: "易鑫月" }, { name: "英语延时", teacher: "肖含" }, { name: "综合素养2", teacher: "潘鑫" }
+  ]}
+];
+
+const days = ["星期一", "星期二", "星期三", "星期四", "星期五"];
+let showTime = true;
+
+function renderSchedule() {
+  const body = document.getElementById("scheduleBody");
+  body.innerHTML = "";
+  scheduleData.forEach((row, rIdx) => {
+    const tr = document.createElement("tr");
+    tr.className = "row-" + row.section;
+    tr.dataset.period = row.period;
+    tr.dataset.time = row.time;
+
+    const periodTd = document.createElement("td");
+    periodTd.className = "period-col";
+    periodTd.innerHTML = `<div class="period-name">${row.period}</div>${showTime ? `<span class="period-time">${row.time}</span>` : ""}`;
+    tr.appendChild(periodTd);
+
+    row.subjects.forEach((sub, cIdx) => {
+      const td = document.createElement("td");
+      td.className = "subject";
+      td.dataset.row = rIdx;
+      td.dataset.col = cIdx;
+      td.innerHTML = `<div class="subject-name">${sub.name}</div>${sub.teacher ? `<div class="subject-teacher">（${sub.teacher}）</div>` : ""}`;
+      td.onclick = () => showDetail(row, sub, cIdx);
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+function showDetail(row, sub, dayIdx) {
+  document.getElementById("modalTitle").textContent = sub.name;
+  document.getElementById("modalSubject").innerHTML = `<strong>科目：</strong>${sub.name}`;
+  document.getElementById("modalTeacher").innerHTML = sub.teacher ? `<strong>教师：</strong>${sub.teacher}` : "";
+  document.getElementById("modalTime").innerHTML = `<strong>时间：</strong>${row.time}`;
+  document.getElementById("modalDay").innerHTML = `<strong>节次：</strong>${days[dayIdx]} ${row.period}`;
+  document.getElementById("modal").classList.add("show");
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("show");
+}
+
+function toggleTime() {
+  showTime = !showTime;
+  renderSchedule();
+}
+
+function getCurrentPeriod() {
+  const now = new Date();
+  const day = now.getDay();
+  const todayKey = dateKey(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayHol = holidays2026[todayKey];
+  if (todayHol && todayHol.type === "holiday") {
+    return { period: "放假", idx: -1, day: day, holiday: todayHol.name };
+  }
+  const isWorkday = todayHol && todayHol.type === "workday";
+  if (!isWorkday && (day === 0 || day === 6)) return { period: "周末", idx: -1, day: day };
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const timeRanges = [
+    { start: 8*60+30, end: 9*60+0, idx: 0 },
+    { start: 9*60+30, end: 10*60+0, idx: 1 },
+    { start: 10*60+15, end: 10*60+45, idx: 2 },
+    { start: 11*60+0, end: 11*60+30, idx: 3 },
+    { start: 11*60+45, end: 12*60+15, idx: 4 },
+    { start: 12*60+15, end: 13*60+45, idx: 5 },
+    { start: 14*60+0, end: 14*60+30, idx: 6 },
+    { start: 14*60+45, end: 15*60+15, idx: 7 },
+    { start: 15*60+30, end: 16*60+5, idx: 8 },
+    { start: 16*60+15, end: 16*60+50, idx: 9 },
+    { start: 17*60+0, end: 17*60+35, idx: 10 }
+  ];
+  for (const r of timeRanges) {
+    if (minutes >= r.start && minutes <= r.end) {
+      return { period: scheduleData[r.idx].period, idx: r.idx, day: day, time: scheduleData[r.idx].time };
+    }
+  }
+  return { period: "课间", idx: -1, day: day };
+}
+
+function highlightCurrent(scroll) {
+  document.querySelectorAll(".current").forEach(el => el.classList.remove("current"));
+  const cur = getCurrentPeriod();
+  document.getElementById("currentPeriod").textContent = cur.period;
+  const banner = document.getElementById("holidayBanner");
+  if (cur.holiday) {
+    banner.textContent = "🎉 今日放假 — " + cur.holiday + "，好好休息！";
+    banner.classList.add("show");
+  } else {
+    banner.classList.remove("show");
+  }
+  if (cur.idx >= 0 && cur.day >= 1 && cur.day <= 5) {
+    const rows = document.querySelectorAll("#scheduleBody tr");
+    if (rows[cur.idx]) {
+      const tds = rows[cur.idx].querySelectorAll("td.subject");
+      if (tds[cur.day - 1]) {
+        tds[cur.day - 1].classList.add("current");
+        if (scroll) tds[cur.day - 1].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }
+}
+
+renderSchedule();
+highlightCurrent(false);
+setInterval(function() { highlightCurrent(false); }, 30000);
+
+document.getElementById("modal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
