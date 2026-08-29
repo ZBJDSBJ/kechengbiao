@@ -375,6 +375,96 @@
     transform: translateX(-50%) translateY(0);
     opacity: 1;
   }
+  .account-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    padding: 10px 20px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .account-info { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .account-info .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .account-info .username { font-weight: 600; color: var(--text); }
+  .account-info .guest { color: var(--text-light); }
+  .account-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn-sm {
+    background: var(--bg);
+    color: var(--primary);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn-sm:hover { background: var(--primary); color: white; border-color: var(--primary); }
+  .btn-sm.danger { color: #E74C3C; }
+  .btn-sm.danger:hover { background: #E74C3C; color: white; border-color: #E74C3C; }
+  .btn-sm.success { color: #27AE60; }
+  .btn-sm.success:hover { background: #27AE60; color: white; border-color: #27AE60; }
+  .auth-modal { display: none; }
+  .auth-modal.show { display: flex; }
+  .auth-modal .modal-content { max-width: 360px; }
+  .auth-modal input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+  .auth-modal input:focus { outline: none; border-color: var(--primary); }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+  .auth-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 2px solid var(--border);
+    font-size: 14px;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+  .edit-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+  }
+  .schedule td.subject.editing { cursor: text; }
+  .schedule td.subject.editing:hover { transform: none; }
+  .inline-edit {
+    width: 100%;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 12px;
+    text-align: center;
+    margin: 1px 0;
+    box-sizing: border-box;
+  }
+  .inline-edit:focus { outline: none; border-color: var(--primary-dark); }
   @media (max-width: 768px) {
     body { padding: 10px; }
     .header { padding: 16px 20px; }
@@ -423,6 +513,16 @@
     </div>
   </div>
 
+  <div class="account-bar" id="accountBar">
+    <div class="account-info" id="accountInfo">
+      <div class="avatar">G</div>
+      <span class="guest">未登录 — 请登录后可自定义课程表</span>
+    </div>
+    <div class="account-actions" id="accountActions">
+      <button class="btn-sm" onclick="openAuth('login')">登录</button>
+      <button class="btn-sm success" onclick="openAuth('register')">注册</button>
+    </div>
+  </div>
   <div class="holiday-banner" id="holidayBanner"></div>
   <div class="toolbar">
     <div class="legend">
@@ -434,7 +534,11 @@
     </div>
     <div class="actions">
       <button class="btn outline" onclick="highlightCurrent(true)">定位当前课</button>
-      <button class="btn" onclick="toggleTime()">显示/隐藏时间</button>
+      <button class="btn outline" onclick="toggleTime()">显示/隐藏时间</button>
+      <button class="btn-sm success" id="editBtn" onclick="toggleEdit()" style="display:none">✏️ 编辑课程</button>
+      <button class="btn-sm" id="exportBtn" onclick="exportData()" style="display:none">📥 导出</button>
+      <button class="btn-sm" id="importBtn" onclick="document.getElementById('importFile').click()" style="display:none">📤 导入</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
     </div>
   </div>
 
@@ -473,6 +577,18 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="modal auth-modal" id="authModal">
+  <div class="modal-content">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">登录</div>
+      <div class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">注册</div>
+    </div>
+    <input type="text" id="authUser" placeholder="用户名" autocomplete="username">
+    <input type="password" id="authPass" placeholder="密码" autocomplete="current-password">
+    <button class="btn" id="authSubmit" onclick="submitAuth()" style="width:100%">登录</button>
+    <button class="btn-sm" onclick="closeAuth()" style="width:100%;margin-top:8px">取消</button>
+  </div>
+</div>
 
 <script>
 const holidays2026 = {
@@ -689,7 +805,179 @@ function goToday() {
 
 renderCalendar();
 
-const scheduleData = [
+let currentUser = null;
+let editMode = false;
+let authMode = "login";
+
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  return String(h);
+}
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem("kc_users") || "{}"); } catch(e) { return {}; }
+}
+function saveUsers(u) { localStorage.setItem("kc_users", JSON.stringify(u)); }
+function getUserData(username) {
+  try { return JSON.parse(localStorage.getItem("kc_data_" + username) || "null"); } catch(e) { return null; }
+}
+function saveUserData(username, data) { localStorage.setItem("kc_data_" + username, JSON.stringify(data)); }
+
+function updateAccountUI() {
+  const info = document.getElementById("accountInfo");
+  const actions = document.getElementById("accountActions");
+  const editBtn = document.getElementById("editBtn");
+  const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+  if (currentUser) {
+    info.innerHTML = `<div class="avatar">${currentUser[0].toUpperCase()}</div><span class="username">${currentUser}</span>`;
+    actions.innerHTML = `<button class="btn-sm danger" onclick="logout()">退出</button>`;
+    editBtn.style.display = "inline-flex";
+    exportBtn.style.display = "inline-flex";
+    importBtn.style.display = "inline-flex";
+  } else {
+    info.innerHTML = `<div class="avatar">G</div><span class="guest">未登录 — 请登录后可自定义课程表</span>`;
+    actions.innerHTML = `<button class="btn-sm" onclick="openAuth('login')">登录</button><button class="btn-sm success" onclick="openAuth('register')">注册</button>`;
+    editBtn.style.display = "none";
+    exportBtn.style.display = "none";
+    importBtn.style.display = "none";
+  }
+}
+
+function openAuth(mode) { authMode = mode; switchAuthTab(mode); document.getElementById("authModal").classList.add("show"); }
+function closeAuth() { document.getElementById("authModal").classList.remove("show"); document.getElementById("authUser").value = ""; document.getElementById("authPass").value = ""; }
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.getElementById("tabLogin").classList.toggle("active", mode === "login");
+  document.getElementById("tabRegister").classList.toggle("active", mode === "register");
+  document.getElementById("authSubmit").textContent = mode === "login" ? "登录" : "注册";
+}
+
+function submitAuth() {
+  const user = document.getElementById("authUser").value.trim();
+  const pass = document.getElementById("authPass").value;
+  if (!user || !pass) { showToast("请输入用户名和密码"); return; }
+  const users = getUsers();
+  if (authMode === "register") {
+    if (users[user]) { showToast("用户名已存在"); return; }
+    users[user] = { pass: simpleHash(pass) };
+    saveUsers(users);
+    currentUser = user;
+    saveUserData(user, JSON.parse(JSON.stringify(scheduleData)));
+    sessionStorage.setItem("kc_current_user", user);
+    closeAuth();
+    updateAccountUI();
+    showToast("注册成功，欢迎 " + user);
+  } else {
+    if (!users[user] || users[user].pass !== simpleHash(pass)) { showToast("用户名或密码错误"); return; }
+    currentUser = user;
+    const saved = getUserData(user);
+    if (saved) { scheduleData.length = 0; saved.forEach(r => scheduleData.push(r)); renderSchedule(); }
+    sessionStorage.setItem("kc_current_user", user);
+    closeAuth();
+    updateAccountUI();
+    showToast("登录成功，欢迎回来 " + user);
+  }
+}
+
+function logout() {
+  currentUser = null;
+  editMode = false;
+  sessionStorage.removeItem("kc_current_user");
+  location.reload();
+}
+
+function toggleEdit() {
+  if (!currentUser) { showToast("请先登录"); return; }
+  editMode = !editMode;
+  const btn = document.getElementById("editBtn");
+  if (editMode) {
+    btn.textContent = "💾 保存";
+    btn.classList.add("danger");
+    showToast("双击课程格可编辑，保存后点击此按钮");
+    enableInlineEdit();
+  } else {
+    btn.textContent = "✏️ 编辑课程";
+    btn.classList.remove("danger");
+    saveUserData(currentUser, scheduleData);
+    showToast("课程表已保存");
+    renderSchedule();
+  }
+}
+
+function enableInlineEdit() {
+  document.querySelectorAll("td.subject").forEach(td => {
+    td.classList.add("editing");
+    td.ondblclick = function() { editCell(td); };
+  });
+}
+
+function editCell(td) {
+  const r = parseInt(td.dataset.row);
+  const c = parseInt(td.dataset.col);
+  const sub = scheduleData[r].subjects[c];
+  const oldName = sub.name;
+  const oldTeacher = sub.teacher;
+  td.innerHTML = `<input class="inline-edit" value="${sub.name}" id="editName"><input class="inline-edit" value="${sub.teacher}" id="editTeacher">`;
+  const nameInput = document.getElementById("editName");
+  const teacherInput = document.getElementById("editTeacher");
+  nameInput.focus();
+  function save() {
+    sub.name = nameInput.value || oldName;
+    sub.teacher = teacherInput.value;
+    td.innerHTML = `<div class="subject-name">${sub.name}</div>${sub.teacher ? `<div class="subject-teacher">（${sub.teacher}）</div>` : ""}`;
+    td.classList.add("editing");
+    td.ondblclick = function() { editCell(td); };
+  }
+  nameInput.onblur = save;
+  teacherInput.onblur = save;
+  nameInput.onkeydown = function(e) { if (e.key === "Enter") this.blur(); };
+  teacherInput.onkeydown = function(e) { if (e.key === "Enter") this.blur(); };
+}
+
+function exportData() {
+  const data = { user: currentUser, schedule: scheduleData, exportDate: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kechengbiao_${currentUser || "default"}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("已导出课程表配置");
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.schedule || !Array.isArray(data.schedule)) { showToast("文件格式错误"); return; }
+      scheduleData.length = 0;
+      data.schedule.forEach(r => scheduleData.push(r));
+      renderSchedule();
+      if (currentUser) { saveUserData(currentUser, scheduleData); showToast("导入成功并已保存"); }
+      else { showToast("导入成功（登录后可保存）"); }
+    } catch(err) { showToast("文件解析失败"); }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+function autoLogin() {
+  const remembered = sessionStorage.getItem("kc_current_user");
+  if (remembered) {
+    currentUser = remembered;
+    const saved = getUserData(remembered);
+    if (saved) { scheduleData.length = 0; saved.forEach(r => scheduleData.push(r)); }
+  }
+  updateAccountUI();
+}
+
+let scheduleData = [
   { section: "morning", period: "第1节", time: "8:30—9:00", subjects: [
     { name: "语文", teacher: "易鑫月" }, { name: "数学", teacher: "陈丽丽" }, { name: "语文", teacher: "易鑫月" }, { name: "数学", teacher: "陈丽丽" }, { name: "语文", teacher: "易鑫月" }
   ]},
@@ -843,6 +1131,7 @@ function highlightCurrent(scroll) {
   }
 }
 
+autoLogin();
 renderSchedule();
 highlightCurrent(false);
 setInterval(function() { highlightCurrent(false); }, 30000);
