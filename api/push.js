@@ -3,8 +3,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   try {
-    const { appToken, content, summary, uids, url } = req.body;
-    if (!appToken || !content || !uids) {
+    const appToken = process.env.WXPUSHER_TOKEN;
+    if (!appToken) {
+      return res.status(500).json({ error: '推送未配置，请联系管理员' });
+    }
+    const { content, summary, uids, url } = req.body;
+    if (!content || !uids) {
       return res.status(400).json({ error: '缺少必要参数' });
     }
     const response = await fetch('https://wxpusher.zjiecode.com/api/send/message', {
