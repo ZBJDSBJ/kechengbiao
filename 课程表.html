@@ -535,6 +535,7 @@
     <div class="actions">
       <button class="btn outline" onclick="highlightCurrent(true)">定位当前课</button>
       <button class="btn outline" onclick="toggleTime()">显示/隐藏时间</button>
+      <button class="btn-sm" onclick="shareLink()">🔗 分享课表</button>
       <button class="btn-sm success" id="editBtn" onclick="toggleEdit()" style="display:none">✏️ 编辑课程</button>
       <button class="btn-sm" id="exportBtn" onclick="exportData()" style="display:none">📥 导出</button>
       <button class="btn-sm" id="importBtn" onclick="document.getElementById('importFile').click()" style="display:none">📤 导入</button>
@@ -964,7 +965,45 @@ function importData(event) {
   event.target.value = "";
 }
 
+function shareLink() {
+  try {
+    const json = JSON.stringify(scheduleData);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    const url = location.origin + location.pathname + "#s=" + encoded;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => showToast("分享链接已复制到剪贴板"));
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      showToast("分享链接已复制到剪贴板");
+    }
+  } catch(e) { showToast("生成链接失败"); }
+}
+
+function loadFromHash() {
+  const hash = location.hash;
+  if (hash.startsWith("#s=")) {
+    try {
+      const encoded = hash.substring(3);
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const data = JSON.parse(json);
+      if (Array.isArray(data)) {
+        scheduleData.length = 0;
+        data.forEach(r => scheduleData.push(r));
+        return true;
+      }
+    } catch(e) {}
+  }
+  return false;
+}
+
 function autoLogin() {
+  if (loadFromHash()) {
+    document.getElementById("accountInfo").innerHTML = `<div class="avatar">S</div><span class="guest">通过分享链接查看（免登录）</span>`;
+    document.getElementById("accountActions").innerHTML = `<button class="btn-sm" onclick="location.hash='';location.reload()">返回默认课表</button>`;
+    return;
+  }
   const remembered = sessionStorage.getItem("kc_current_user");
   if (remembered) {
     currentUser = remembered;
