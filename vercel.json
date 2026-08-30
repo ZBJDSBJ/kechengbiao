@@ -4,7 +4,7 @@
   "framework": null,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -13,7 +13,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-
         }
       ]
     }
