@@ -1,0 +1,16 @@
+f = open(r'D:\AIWorks\kechengbiao\deploy\index.html', 'r', encoding='utf-8')
+html = f.read()
+f.close()
+
+old = '<div class="modal auth-modal" id="pushModal"><div class="modal-content"><h3>📱 WxPusher推送设置</h3><p style="font-size:13px;color:var(--text-light);margin-bottom:12px">在 <a href="https://wxpusher.zjiecode.com/" target="_blank">WxPusher</a> 扫码关注后，在「用户管理」中获取您的 UID</p><div style="text-align:center;margin-bottom:12px"><img src="https://wxpusher.zjiecode.com/api/qrcode/ypRdWm9oT63QrLutxJuz18xoUZfK9Uo0TuMn4LoKawXtjNQHO55sVPq2N8ZaY1PE.jpg" style="width:160px;height:160px;border-radius:8px;border:1px solid var(--border)" alt="订阅二维码"><div style="font-size:12px;color:var(--text-light);margin-top:6px">👆 微信扫码订阅应用</div></div><input type="text" id="pushUid" placeholder="订阅后填入您的UID" style="margin-bottom:8px"><label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-bottom:12px"><input type="checkbox" id="pushAuto" style="width:auto">每天8:00自动推送今日课程</label><button class="btn" onclick="savePushSettings()" style="width:100%">保存设置</button><button class="btn-sm" onclick="document.getElementById(\'pushModal\').classList.remove(\'show\')" style="width:100%;margin-top:8px">取消</button></div></div>'
+
+new = '<div class="modal auth-modal" id="pushModal"><div class="modal-content" style="max-width:380px"><h3>📱 微信推送设置</h3><div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center"><div style="color:#fff;font-size:13px;font-weight:600;margin-bottom:10px">第1步：微信扫码订阅应用</div><img src="https://wxpusher.zjiecode.com/api/qrcode/ypRdWm9oT63QrLutxJuz18xoUZfK9Uo0TuMn4LoKawXtjNQHO55sVPq2N8ZaY1PE.jpg" style="width:180px;height:180px;border-radius:8px;background:#fff;padding:4px" alt="订阅二维码"><div style="color:#fff;font-size:11px;margin-top:8px;opacity:0.9">↑ 打开微信扫一扫，关注并订阅</div></div><div style="background:#fff3cd;border:1px solid #ffeaa7;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#856404">⚠️ 必须扫描上方二维码订阅应用，仅关注公众号<b>无法</b>接收推送！</div><div style="font-size:13px;color:var(--text-light);margin-bottom:6px">第2步：填入您的 UID</div><div style="font-size:11px;color:var(--text-light);margin-bottom:8px">扫码订阅后，在 <a href="https://wxpusher.zjiecode.com/" target="_blank" style="color:var(--primary)">WxPusher官网</a> → 用户管理中查看 UID</div><input type="text" id="pushUid" placeholder="例如：UID_xxxxxxxx" style="margin-bottom:8px"><label style="font-size:13px;display:flex;align-items:center;gap:6px;margin-bottom:12px"><input type="checkbox" id="pushAuto" style="width:auto">每天8:00自动推送今日课程</label><button class="btn" onclick="savePushSettings()" style="width:100%">保存设置</button><button class="btn-sm" onclick="testPush()" style="width:100%;margin-top:8px">测试推送</button><button class="btn-sm" onclick="document.getElementById(\'pushModal\').classList.remove(\'show\')" style="width:100%;margin-top:8px">取消</button></div></div>'
+
+if old in html:
+    html = html.replace(old, new)
+    f = open(r'D:\AIWorks\kechengbiao\deploy\index.html', 'w', encoding='utf-8')
+    f.write(html)
+    f.close()
+    print("Modal updated! Size:", len(html.encode('utf-8')))
+else:
+    print("Pattern not found!")

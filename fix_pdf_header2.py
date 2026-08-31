@@ -1,0 +1,28 @@
+f = open(r'D:\AIWorks\kechengbiao\deploy\index.html', 'r', encoding='utf-8')
+html = f.read()
+f.close()
+
+# 找到当前的 exportPDF 函数并替换
+i = html.find('function exportPDF(){')
+if i < 0:
+    print("exportPDF not found!")
+    exit()
+
+# 找到函数结束位置
+j = html.find('}function importData', i)
+if j < 0:
+    j = html.find('}\nfunction importData', i)
+    end = j + 1
+else:
+    end = j + 1
+
+old_func = html[i:end]
+
+new_func = """function exportPDF(){showToast("正在生成PDF...");var el=document.querySelector(".schedule-wrapper");var container=document.createElement("div");container.style.cssText="position:absolute;left:-9999px;top:0;width:"+el.offsetWidth+"px;background:#fff;padding:24px;border-radius:16px;box-sizing:border-box;";var header=document.createElement("div");header.style.cssText="text-align:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #E2E8F0;";header.innerHTML='<div style="font-size:26px;font-weight:700;color:#6366F1;margin-bottom:10px;">\\uF0D7 \\u8BFE\\u7A0B\\u8868</div><div style="font-size:13px;color:#64748B;line-height:1.8;">2026-2027\\u5B66\\u5E74\\u7B2C\\u4E00\\u5B66\\u671F\\u3000|\\u3000\\u9526\\u6649\\u5C0F\\u5B66\\u91D1\\u878D\\u57CE\\u5206\\u6821\\u3000|\\u3000\\u4E00\\u5E74\\u7EA714\\u73ED\\u3000|\\u3000\\u73ED\\u4E3B\\u4EFB\\uFF1A\\u6613\\u946B\\u6708</div>';container.appendChild(header);var clone=el.cloneNode(true);container.appendChild(clone);document.body.appendChild(container);html2canvas(container,{scale:2,backgroundColor:"#ffffff",useCORS:true}).then(function(canvas){document.body.removeChild(container);var img=canvas.toDataURL("image/jpeg",0.95);var pdf=new jspdf.jsPDF("l","mm","a4");var pw=pdf.internal.pageSize.getWidth();var ph=pdf.internal.pageSize.getHeight();var iw=canvas.width;var ih=canvas.height;var w=pw-20;var h=w*ih/iw;if(h>ph-20){h=ph-20;w=h*iw/ih}pdf.addImage(img,"JPEG",(pw-w)/2,(ph-h)/2,w,h);pdf.save("kechengbiao_"+(currentUser||"default")+"_"+new Date().toISOString().slice(0,10)+".pdf");showToast("PDF\\u5DF2\\u5BFC\\u51FA")}).catch(function(err){document.body.removeChild(container);showToast("\\u5BFC\\u51FA\\u5931\\u8D25:"+err.message)})}"""
+
+html = html[:i] + new_func + html[end:]
+
+f = open(r'D:\AIWorks\kechengbiao\deploy\index.html', 'w', encoding='utf-8')
+f.write(html)
+f.close()
+print("exportPDF updated with header! Size:", len(html.encode('utf-8')))
