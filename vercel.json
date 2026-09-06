@@ -2,13 +2,19 @@
   "buildCommand": "echo 'No build needed'",
   "outputDirectory": ".",
   "framework": null,
+  "crons": [
+    {
+      "path": "/api/cron-push",
+      "schedule": "0 11 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/((?!api/).*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=86400, s-maxage=2592000, immutable"
+          "value": "public, max-age=300, s-maxage=600"
         },
         {
           "key": "X-Content-Type-Options",
